@@ -24,11 +24,15 @@ class MobileBGSpider(scrapy.Spider):
     # main_url = ['https://www.mobile.bg/pcgi/mobile.cgi']
 
     def __init__(self, *args, **kwargs):
-        self._load_mobile_saved_links()
+        self.links = self._load_mobile_saved_links()
         print('*'*40)
         # print('*args: ', args)
         # print('**kwargs: ', kwargs.items())
-        self._load_command_args(kwargs.items())
+        self.arguments = self._load_command_args(kwargs.items())
+        self.start_urls = self._build_start_urls()
+
+        if self.arguments.get('car_brand', None) and self.arguments.get('link', None) and self.arguments.get('save_link', 'false') == 'true':
+            self._update_saved_links()
 
 
     def _load_mobile_saved_links(self):
@@ -43,6 +47,7 @@ class MobileBGSpider(scrapy.Spider):
         with open('mobile_links.json', 'w') as f:
             f.write(json.dumps(links_dict))
 
+
     def _load_command_args(self, args):
         values = {}
         for item in args:
@@ -52,3 +57,19 @@ class MobileBGSpider(scrapy.Spider):
         print('Unpacked args: ', values)
         return values
 
+
+    def _update_saved_links(self):
+        self.links[self.arguments.get('car_brand', 'empty')] = self.arguments.get('link', None)
+        self._save_new_link(self.links)
+    
+
+    def _build_start_urls(self):
+        start_urls = []
+        if self.arguments.get('link', None):
+            start_urls.append(self.arguments.get('link'))
+        else:
+            for item in self.links.values():
+                start_urls.append(item)
+        
+        print('start_urls: ', start_urls)
+        return start_urls
