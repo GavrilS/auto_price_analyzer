@@ -10,7 +10,7 @@ Optional arguments:
     -a link=<link for above car brand> -> link that will be used to search for car offers
     -a save_link=<true/false> -> a flag that will tell the spider to either save the link in the links file 
 or not, default is to save the link if a car_brand is given, otherwise it does not save it; that applies even 
-if the flag is set to true, without a car_brand argument specified, the link won't be save
+if the flag is set to true, without a car_brand argument specified, the link won't be saved
 
 Usage: scrapy crawl mobile_bg -a car_brand=huyndai -a link='test-link.bg' -a save_link=true
 """
@@ -21,6 +21,7 @@ import scrapy
 
 class MobileBGSpider(scrapy.Spider):
     name = 'mobile_bg'
+    page = 1
     # main_url = ['https://www.mobile.bg/pcgi/mobile.cgi']
 
     def __init__(self, *args, **kwargs):
@@ -33,6 +34,39 @@ class MobileBGSpider(scrapy.Spider):
 
         if self.arguments.get('car_brand', None) and self.arguments.get('link', None) and self.arguments.get('save_link', 'false') == 'true':
             self._update_saved_links()
+
+    # this overrides the method calling the start urls
+    # def start_requests(self):
+    #     for url in self.start_urls:
+    #         item = {'start_url': url}
+    #         request = scrapy.http.Request(url, dont_filter=True)
+    #         request.meta['item'] = item
+    #         yield request
+
+
+    def parse(self, response):
+        car_offers_subjects = response.css(".mmm").extract()
+        # if response.meta['item'] and response.meta['item']['start_urls']:
+        #     url = response.meta['item']['start_url'][:-1]
+        #     print('original request url: ', response.meta['item']['start_url'])
+        #     print('updated: ', url)
+        # else:
+        #     url = 
+        print('response: ', response)
+        start_url = str(response).split(' ')[1][:-2]
+        print('response start_url: ', start_url)
+        offer_count = 1
+        for offer in car_offers_subjects:
+            print(f'Offer number {offer_count} -> {offer}')
+            offer_count += 1
+        
+        # go to the next page
+        self.page += 1
+        if self.page > 3:
+            return
+        next_page = start_url + str(self.page)
+        print('next_page: ', next_page)
+        yield response.follow(next_page, callback=self.parse)
 
 
     def _load_mobile_saved_links(self):
