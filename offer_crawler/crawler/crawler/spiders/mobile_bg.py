@@ -21,7 +21,9 @@ import scrapy
 
 class MobileBGSpider(scrapy.Spider):
     name = 'mobile_bg'
-    page = 1
+    _page = 1
+    _top_level_flag = True
+    _offer_links = []
     # main_url = ['https://www.mobile.bg/pcgi/mobile.cgi']
 
     def __init__(self, *args, **kwargs):
@@ -35,39 +37,37 @@ class MobileBGSpider(scrapy.Spider):
         if self.arguments.get('car_brand', None) and self.arguments.get('link', None) and self.arguments.get('save_link', 'false') == 'true':
             self._update_saved_links()
 
-    # this overrides the method calling the start urls
-    # def start_requests(self):
-    #     for url in self.start_urls:
-    #         item = {'start_url': url}
-    #         request = scrapy.http.Request(url, dont_filter=True)
-    #         request.meta['item'] = item
-    #         yield request
-
-
+    
     def parse(self, response):
-        car_offers_subjects = response.css(".mmm").extract()
-        # if response.meta['item'] and response.meta['item']['start_urls']:
-        #     url = response.meta['item']['start_url'][:-1]
-        #     print('original request url: ', response.meta['item']['start_url'])
-        #     print('updated: ', url)
-        # else:
-        #     url = 
-        print('response: ', response)
-        start_url = str(response).split(' ')[1][:-2]
-        print('response start_url: ', start_url)
-        offer_count = 1
-        for offer in car_offers_subjects:
-            print(f'Offer number {offer_count} -> {offer}')
-            offer_count += 1
-        
-        # go to the next page
-        self.page += 1
-        if self.page > 3:
-            return
-        next_page = start_url + str(self.page)
-        print('next_page: ', next_page)
-        yield response.follow(next_page, callback=self.parse)
+        """
+        Need to crawl links from 2 levels deep:
+            - first we crawl to filtered pages for the links to the different offers
+            - the second step is to open each link and retrieve the information from there
+        """
+        if self._top_level_flag:
+            car_offers_subjects = response.css(".mmm").extract()
+ 
+            print('response: ', response)
+            start_url = str(response).split(' ')[1][:-2]
+            print('response start_url: ', start_url)
+            offer_count = 1
+            for offer in car_offers_subjects:
+                print(f'Offer number {offer_count} -> {offer}')
+                print('type(offer): ', type(offer))
+                offer_count += 1
 
+                self._offer_links.append(offer)
+            
+            # go to the next page
+            self._page += 1
+            if self._page > 3:
+                return
+            next_page = start_url + str(self._page)
+            print('next_page: ', next_page)
+            yield response.follow(next_page, callback=self.parse)
+        else:
+            pass
+    
 
     def _load_mobile_saved_links(self):
         with open('mobile_links.json', 'r') as f:
