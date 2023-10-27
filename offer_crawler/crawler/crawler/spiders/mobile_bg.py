@@ -15,6 +15,7 @@ if the flag is set to true, without a car_brand argument specified, the link won
 Usage: scrapy crawl mobile_bg -a car_brand=huyndai -a link='test-link.bg' -a save_link=true
 """
 
+import time
 import json
 import scrapy
 
@@ -44,29 +45,44 @@ class MobileBGSpider(scrapy.Spider):
             - first we crawl to filtered pages for the links to the different offers
             - the second step is to open each link and retrieve the information from there
         """
-        if self._top_level_flag:
-            car_offers_subjects = response.css(".mmm").extract()
- 
-            print('response: ', response)
-            start_url = str(response).split(' ')[1][:-2]
-            print('response start_url: ', start_url)
-            offer_count = 1
-            for offer in car_offers_subjects:
-                print(f'Offer number {offer_count} -> {offer}')
-                print('type(offer): ', type(offer))
-                offer_count += 1
+        car_offers_subjects = response.css(".mmm").extract()
 
-                self._offer_links.append(offer)
+        print('response: ', response)
+        start_url = str(response).split(' ')[1][:-2]
+        print('response start_url: ', start_url)
+        offer_count = 1
+        print('len(car_offers_subjects): ', len(car_offers_subjects))
+        if len(car_offers_subjects) == 2:
+            print('*********No More Pages To Crawl With This Filter**********')
+            return
+        for offer in car_offers_subjects:
+            print(f'Offer number {offer_count} -> {offer}')
+            print('type(offer): ', type(offer))
+            offer_parts = offer.split('"')
+            print('offer_parts: ', offer_parts)
+            offer_link = 'https:' + offer_parts[1]
+            print('offer_link: ', offer_link)
+            offer_count += 1
+
+            # self._offer_links.append(offer)
+            if offer_count == 3:
+                yield scrapy.Request(offer_link, callback=self.parse_offer)
+                time.sleep(1)
+        
+        # go to the next page
+        self._page += 1
+        if self._page > 3:
+            self._top_level_flag = False
             
-            # go to the next page
-            self._page += 1
-            if self._page > 3:
-                return
-            next_page = start_url + str(self._page)
-            print('next_page: ', next_page)
-            yield response.follow(next_page, callback=self.parse)
-        else:
-            pass
+        next_page = start_url + str(self._page)
+        print('next_page: ', next_page)
+        yield response.follow(next_page, callback=self.parse)
+
+
+    def parse_offer(self, response):
+        print('&&&&&&Parse Offer&&&&&&&&&')
+        print('response: ', response)
+        return None
     
 
     def _load_mobile_saved_links(self):
