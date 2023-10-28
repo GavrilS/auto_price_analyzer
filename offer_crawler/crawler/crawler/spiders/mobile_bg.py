@@ -62,12 +62,15 @@ class MobileBGSpider(scrapy.Spider):
             print('offer_parts: ', offer_parts)
             offer_link = 'https:' + offer_parts[1]
             print('offer_link: ', offer_link)
-            offer_count += 1
 
             # self._offer_links.append(offer)
             if offer_count == 3:
-                yield scrapy.Request(offer_link, callback=self.parse_offer)
+                print('Offer Count is 3***************************In If Blocks\n\n\n')
+                inner_response = yield response.follow(offer_link, callback=self.parse_offer)
+                print('Inner response: ', inner_response)
                 time.sleep(1)
+            
+            offer_count += 1
         
         # go to the next page
         self._page += 1
@@ -82,7 +85,7 @@ class MobileBGSpider(scrapy.Spider):
     def parse_offer(self, response):
         print('&&&&&&Parse Offer&&&&&&&&&')
         print('response: ', response)
-        return None
+        return response
     
 
     def _load_mobile_saved_links(self):
