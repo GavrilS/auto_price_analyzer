@@ -54,21 +54,29 @@ class MobileBGSpider(scrapy.Spider):
         print('len(car_offers_subjects): ', len(car_offers_subjects))
         if len(car_offers_subjects) == 2:
             print('*********No More Pages To Crawl With This Filter**********')
+            print('specific offers to crawl: ', self._offer_links)
+            # self.start_url = self._offer_links
+            for offer in self._offer_links:
+                print('OFFER: ', offer)
+                yield scrapy.Request(offer, callback=self.parse_offer)
+                time.sleep(1)
+                break
+            print('No more offers to check')
             return
         for offer in car_offers_subjects:
             print(f'Offer number {offer_count} -> {offer}')
             print('type(offer): ', type(offer))
             offer_parts = offer.split('"')
             print('offer_parts: ', offer_parts)
-            offer_link = 'https:' + offer_parts[1]
+            offer_link = offer_parts[1]
             print('offer_link: ', offer_link)
 
-            # self._offer_links.append(offer)
-            if offer_count == 3:
-                print('Offer Count is 3***************************In If Blocks\n\n\n')
-                inner_response = yield response.follow(offer_link, callback=self.parse_offer)
-                print('Inner response: ', inner_response)
-                time.sleep(1)
+            if offer_link and offer_link != '':
+                if not offer_link.startswith('http'):
+                    offer_link = 'https:' + offer_link
+                    print('updated offer link: ', offer_link)
+                
+                self._offer_links.append(offer_link)
             
             offer_count += 1
         
@@ -79,13 +87,14 @@ class MobileBGSpider(scrapy.Spider):
             
         next_page = start_url + str(self._page)
         print('next_page: ', next_page)
+        # self.start_urls.append(next_page)
         yield response.follow(next_page, callback=self.parse)
 
 
     def parse_offer(self, response):
         print('&&&&&&Parse Offer&&&&&&&&&')
         print('response: ', response)
-        return response
+        return None
     
 
     def _load_mobile_saved_links(self):
