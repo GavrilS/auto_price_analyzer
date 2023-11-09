@@ -94,6 +94,15 @@ class MobileBGSpider(scrapy.Spider):
     def parse_offer(self, response):
         print('&&&&&&Parse Offer&&&&&&&&&')
         print('response: ', response)
+        title = response.css("h1").extract()
+        price = response.css("#details_price").extract()
+        details = response.css("li").extract()
+        print('title: ', title)
+        print('price: ', price)
+        print('details: ', details)
+        print('type(title): ', type(title))
+        print('type(price): ', type(price))
+        print('type(details): ', type(details))
         return None
     
 
