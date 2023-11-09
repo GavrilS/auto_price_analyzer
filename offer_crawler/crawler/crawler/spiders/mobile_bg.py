@@ -18,6 +18,7 @@ Usage: scrapy crawl mobile_bg -a car_brand=huyndai -a link='test-link.bg' -a sav
 import time
 import json
 import scrapy
+from crawler.items import CarOffer
 
 
 class MobileBGSpider(scrapy.Spider):
@@ -103,7 +104,9 @@ class MobileBGSpider(scrapy.Spider):
         print('type(title): ', type(title))
         print('type(price): ', type(price))
         print('type(details): ', type(details))
-        return None
+        car_offer = CarOffer(title=title, price=price, details=details)
+        print('car_offer: ', car_offer)
+        yield car_offer
     
 
     def _load_mobile_saved_links(self):
