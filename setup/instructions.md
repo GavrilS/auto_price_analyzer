@@ -13,4 +13,8 @@
 
     docker ps -a -> gives the data for existing containers; grab the id of the postgres container
     docker exec -it <postgres_container> bash -> enter the container shell
-    
+
+
+
+# For further automation:
+https://www.postgresqltutorial.com/postgresql-python/connect/
