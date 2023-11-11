@@ -1,3 +1,4 @@
 django
 scrappy
 psycopg2
+python-dotenv
