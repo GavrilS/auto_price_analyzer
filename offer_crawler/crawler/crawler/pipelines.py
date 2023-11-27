@@ -30,16 +30,27 @@ class OfferPipeline:
                 password=DB_PASS,
                 port=DB_PORT
             )
+            self.cur = self.conn.cursor()
             print('DB connection set up successfully!')
         except Exception as e:
             print('Could not set up connection to the DB: ', str(e))
 
 
     def close_spider(self, spider):
-        self.conn.close()
-        print('The connection to the DB was closed successfully!')
+        try:
+            self.cur.close()
+            self.conn.close()
+            print('The connection to the DB was closed successfully!')
+        except Exception as e:
+            print('Could not close the connection to the database: ', str(e))
 
     
     def process_item(self, item, spider):
-        
-        pass
+        user_id = item.get('user_id', 0)
+        title = item.get('title', '')
+        get_offer_query = f"SELECT * FROM offer WHERE user_id = {user_id} and title = {title}"
+        result = self.cur.execute(get_offer_query).fetchone()
+        if not result:
+            pass
+        else:
+            pass
