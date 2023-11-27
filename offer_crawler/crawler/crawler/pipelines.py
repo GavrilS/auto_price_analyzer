@@ -15,6 +15,11 @@ DB_USER = os.getenv('DB_USER', None)
 DB_PASS = os.getenv('DB_PASS', None)
 DB_NAME = os.getenv('DB_NAME', None)
 
+DEFAULT_USER_ID = 0
+DEFAULT_PRICE = 0
+DEFAULT_TITLE = None
+DEFAULT_DETAILS = None
+DEFAULT_RECORD_TIME = None
 # class CrawlerPipeline:
 #     def process_item(self, item, spider):
 #         return item
@@ -46,11 +51,23 @@ class OfferPipeline:
 
     
     def process_item(self, item, spider):
-        user_id = item.get('user_id', 0)
-        title = item.get('title', '')
-        get_offer_query = f"SELECT * FROM offer WHERE user_id = {user_id} and title = {title}"
+        user_id = item.get('user_id', DEFAULT_USER_ID)
+        title = item.get('title', DEFAULT_TITLE)
+        price = item.get('price', DEFAULT_PRICE)
+        details = item.get('details', DEFAULT_DETAILS)
+        record_time = item.get('record_time', DEFAULT_RECORD_TIME)
+        get_offer_query = f"SELECT id FROM offer WHERE user_id = {user_id} and title = {title}"
         result = self.cur.execute(get_offer_query).fetchone()
         if not result:
-            pass
+            insert_offer_query = f"INSERT INTO offer (title, price, details, record_time, user_id) VALUES 
+            ({title}, {price}, {details}, {record_time}, {user_id} RETURNING id)"
+            self.cur.execute(insert_offer_query)
+            offer_id = self.cur.fetchone()[0]
+            prices = [price]
+            record_times = [record_time]
+            insert_history_query = f"INSERT INTO history (offer_id, prices, record_times) VALUES
+            ({offer_id}, {prices}, {record_times})"
+            self.cur.execute(insert_history_query)
+            self.conn.commit()
         else:
             pass
