@@ -16,9 +16,12 @@ Usage: scrapy crawl mobile_bg -a car_brand=huyndai -a link='test-link.bg' -a sav
 """
 
 import time
+from datetime import datetime
 import json
 import scrapy
 from crawler.items import CarOffer
+
+now = datetime.now()
 
 
 class MobileBGSpider(scrapy.Spider):
@@ -104,7 +107,7 @@ class MobileBGSpider(scrapy.Spider):
         print('type(title): ', type(title))
         print('type(price): ', type(price))
         print('type(details): ', type(details))
-        car_offer = CarOffer(title=title, price=price, details=details)
+        car_offer = CarOffer(title=title, price=price, details=details, record_time=now)
         print('car_offer: ', car_offer)
         yield car_offer
     

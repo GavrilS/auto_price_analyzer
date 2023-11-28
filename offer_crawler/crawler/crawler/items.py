@@ -16,3 +16,5 @@ class CarOffer(scrapy.Item):
     title = scrapy.Field()
     price = scrapy.Field()
     details = scrapy.Field()
+    user_id = scrapy.Field()
+    record_time = scrapy.Field()
