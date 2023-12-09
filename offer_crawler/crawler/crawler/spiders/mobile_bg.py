@@ -98,19 +98,30 @@ class MobileBGSpider(scrapy.Spider):
     def parse_offer(self, response):
         print('&&&&&&Parse Offer&&&&&&&&&')
         print('response: ', response)
-        title = response.css("h1").extract()
-        price = response.css("#details_price").extract()
-        details = response.css("li").extract()
+        # title = response.css("h1::text").extract()
+        title = response.css("h1::text").get()
+        # price = response.css("#details_price::text").extract()
+        price = response.css("#details_price::text").get()
+        updated_price = self._convert_price_to_number(price)
+        details = response.css("li::text").extract()
         print('title: ', title)
         print('price: ', price)
+        print('updated_price: ', updated_price)
         print('details: ', details)
         print('type(title): ', type(title))
         print('type(price): ', type(price))
+        print('type(updated_price): ', type(updated_price))
         print('type(details): ', type(details))
-        car_offer = CarOffer(title=title, price=price, details=details, record_time=now)
+        car_offer = CarOffer(title=title, price=updated_price, details=details, record_time=now)
         print('car_offer: ', car_offer)
         yield car_offer
     
+
+    def _convert_price_to_number(self, price):
+        if isinstance(price, str):
+            price = price.lower().replace('лв.', '').replace('лв', '').replace(' ', '')
+        return int(price)
+
 
     def _load_mobile_saved_links(self):
         with open('mobile_links.json', 'r') as f:
