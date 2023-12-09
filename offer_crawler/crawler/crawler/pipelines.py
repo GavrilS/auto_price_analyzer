@@ -62,14 +62,14 @@ class OfferPipeline:
         # No result means this offer is being saved for the first time for this user
         # Insert it into offer table and create a corresponding record to the history table
         if not result:
-            insert_offer_query = f"INSERT INTO offer (title, price, details, record_time, user_id) VALUES 
+            insert_offer_query = f"INSERT INTO offer (title, price, details, record_time, user_id) VALUES \
             ({title}, {price}, {details}, {record_time}, {user_id}) RETURNING id"
             self.cur.execute(insert_offer_query)
             offer_id = self.cur.fetchone()
             print('offer_id: ', offer_id)
             prices = [price]
             record_times = [record_time]
-            insert_history_query = f"INSERT INTO history (offer_id, prices, record_times) VALUES
+            insert_history_query = f"INSERT INTO history (offer_id, prices, record_times) VALUES \
             ({offer_id}, {prices}, {record_times})"
             self.cur.execute(insert_history_query)
             self.conn.commit()
@@ -84,11 +84,11 @@ class OfferPipeline:
             history_record[1].append(result[2])
             history_record[2].append(result[4])
 
-            update_history_query = f"INSERT INTO history (prices, record_times) VALUES
+            update_history_query = f"INSERT INTO history (prices, record_times) VALUES \
             ({history_record[1]}, {history_record[2]}) WHERE id = {history_record[0]})"
             self.cur.execute(update_history_query)
 
-            update_offer_query = f"INSERT INTO offer (title, price, details, record_time, user_id) VALUES 
+            update_offer_query = f"INSERT INTO offer (title, price, details, record_time, user_id) VALUES \
             ({title}, {price}, {details}, {record_time}, {user_id}) WHERE id = {result[0]}"
             self.cur.execute(update_offer_query)
             self.con.commit()
