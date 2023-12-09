@@ -51,19 +51,19 @@ class OfferPipeline:
 
     
     def process_item(self, item, spider):
-        user_id = item.get('user_id', DEFAULT_USER_ID)
+        user_id = item.get('user_id', None)
         title = item.get('title', DEFAULT_TITLE)
         price = item.get('price', DEFAULT_PRICE)
         details = item.get('details', DEFAULT_DETAILS)
         record_time = item.get('record_time', DEFAULT_RECORD_TIME)
-        get_offer_query = f"SELECT * FROM offer WHERE user_id = {user_id} and title = {title}"
+        get_offer_query = f"SELECT * FROM offer WHERE user_id = {user_id} and title = '{title}'"
         result = self.cur.execute(get_offer_query).fetchone()
         print('result: ', result)
         # No result means this offer is being saved for the first time for this user
         # Insert it into offer table and create a corresponding record to the history table
         if not result:
             insert_offer_query = f"INSERT INTO offer (title, price, details, record_time, user_id) VALUES \
-            ({title}, {price}, {details}, {record_time}, {user_id}) RETURNING id"
+            ('{title}', {price}, '{details}', {record_time}, {user_id}) RETURNING id"
             self.cur.execute(insert_offer_query)
             offer_id = self.cur.fetchone()
             print('offer_id: ', offer_id)
