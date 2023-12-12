@@ -104,15 +104,17 @@ class MobileBGSpider(scrapy.Spider):
         price = response.css("#details_price::text").get()
         updated_price = self._convert_price_to_number(price)
         details = response.css("li::text").extract()
+        updated_details = self._convert_details_to_json(details)
         print('title: ', title)
         print('price: ', price)
         print('updated_price: ', updated_price)
         print('details: ', details)
+        print('updated_details: ', updated_details)
         print('type(title): ', type(title))
         print('type(price): ', type(price))
         print('type(updated_price): ', type(updated_price))
         print('type(details): ', type(details))
-        car_offer = CarOffer(title=title, price=updated_price, details=details, record_time=now)
+        car_offer = CarOffer(title=title, price=updated_price, details=updated_details, record_time=now)
         print('car_offer: ', car_offer)
         yield car_offer
     
@@ -121,6 +123,19 @@ class MobileBGSpider(scrapy.Spider):
         if isinstance(price, str):
             price = price.lower().replace('лв.', '').replace('лв', '').replace(' ', '')
         return int(price)
+
+
+    def _convert_details_to_json(self, details_list):
+        last_key = ''
+        details = {}
+        for i in range(0, len(details_list)):
+            if i % 2 == 0:
+                last_key = details_list[i]
+            else:
+                details[last_key] = details_list[i]
+        
+        print('FINAL JSON DETAILS: ', details)
+        return details
 
 
     def _load_mobile_saved_links(self):
