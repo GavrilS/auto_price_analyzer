@@ -8,6 +8,7 @@
 import os
 from itemadapter import ItemAdapter
 import psycopg2
+import json
 
 DB_HOST = os.getenv('DB_HOST', 'localhost')
 DB_PORT = os.getenv('DB_PORT', '5432')
@@ -66,8 +67,12 @@ class OfferPipeline:
         # No result means this offer is being saved for the first time for this user
         # Insert it into offer table and create a corresponding record to the history table
         if not result:
-            insert_offer_query = f"INSERT INTO offer (title, price, details, record_time, user_id) VALUES \
-            ('{title}', {price}, '{details}', {record_time}, {user_id}) RETURNING id"
+            if user_id:
+                insert_offer_query = f"INSERT INTO offer (title, price, details, record_time, user_id) VALUES \
+                    ('{title}', {price}, '{json.dumps(details)}', '{record_time}', {user_id}) RETURNING id"
+            else:
+                insert_offer_query = f"INSERT INTO offer (title, price, details, record_time) VALUES \
+                    ('{title}', {price}, '{json.dumps(details)}', '{record_time}') RETURNING id"
             self.cur.execute(insert_offer_query)
             offer_id = self.cur.fetchone()
             print('offer_id: ', offer_id)
@@ -93,6 +98,6 @@ class OfferPipeline:
             self.cur.execute(update_history_query)
 
             update_offer_query = f"INSERT INTO offer (title, price, details, record_time, user_id) VALUES \
-            ({title}, {price}, {details}, {record_time}, {user_id}) WHERE id = {result[0]}"
+            ({title}, {price}, {json.dumps(details)}, {record_time}, {user_id}) WHERE id = {result[0]}"
             self.cur.execute(update_offer_query)
             self.con.commit()
