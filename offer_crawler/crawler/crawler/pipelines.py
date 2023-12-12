@@ -56,8 +56,12 @@ class OfferPipeline:
         price = item.get('price', DEFAULT_PRICE)
         details = item.get('details', DEFAULT_DETAILS)
         record_time = item.get('record_time', DEFAULT_RECORD_TIME)
-        get_offer_query = f"SELECT * FROM offer WHERE user_id = {user_id} and title = '{title}'"
-        result = self.cur.execute(get_offer_query).fetchone()
+        if user_id:
+            get_offer_query = f"SELECT * FROM offer WHERE user_id = {user_id} and title = '{title}'"
+        else:
+            get_offer_query = f"SELECT * FROM offer WHERE title = '{title}'"
+        # result = self.cur.execute(get_offer_query).fetchone()
+        result = self.cur.execute(get_offer_query)
         print('result: ', result)
         # No result means this offer is being saved for the first time for this user
         # Insert it into offer table and create a corresponding record to the history table
